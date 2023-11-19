@@ -58,5 +58,5 @@ esptool.py --chip esp32 \
  0x10000 .pio/build/esp32dev/firmware.bin
 ```
 
-## Running the malicous servers
+## Running the malicious servers
 #TODO make one run script to run all three, and close all three on ctrl+c
