@@ -41,7 +41,7 @@ Wireless communication represents a hardware security risk, being that another W
 ## Uploading Wifi Marauder to esp32
 #TODO
 
-## Building & uploading the nat router to an esp32 dev board
+## Uploading nat router to an esp32 dev board
 1. Open the esp32_nat_server folder in vscode, let platformio process, then press only the build button
 2. Install esptool, #TODO install 
 3. Upload the image
