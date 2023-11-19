@@ -5,7 +5,7 @@
 | :--                                 | :--                                                           |
 |[ctf-solution](ctf-solution)         | For now, testing base for iot-light, yes it needs to be moved |
 |[esp32_nat_router](esp32_nat_router) | A configurable router for esp32, used to dns spoof            |
-|[ESP32Marauder](src)                 | Wifi security tool on esp32 that can be used to deauth        |
+|[ESP32Marauder](ESP32Marauder)       | Wifi security tool on esp32 that can be used to deauth        |
 |[iot-lght](iot-light)                | --                                                            |
 |[servers](servers)                   | Malicous dns, http, and https servers                         |
 
