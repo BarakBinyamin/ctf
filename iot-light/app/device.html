@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html>
+
+<body>
+<!-- Websockets test in place of the real iot-lamp  -->
+<div id="status" class="status">--</div>
+<div class="center">
+    <label class="switch">
+        <input id="switch" type="checkbox" onclick="handleClick()">
+        <span class="slider round"></span>
+    </label>
+</div>
+
+</body>
+
+<script>
+let state = false
+
+async function onLoad(){
+    const socket = new WebSocket(`ws://${window.location.hostname}?id=device`);
+    socket.addEventListener("open", async (event) => {
+        // socket.send(JSON.stringify({"type":"status"}))
+        console.log('Connected!')
+    })
+    socket.addEventListener("message", (event) => {
+        console.log("Message from server ", event.data);
+        const info = JSON.parse(event.data)
+        if (info?.state==true){
+          state=true
+        }else if(info?.state==false){
+          state=false
+        }
+        const light  = document.getElementById('switch')
+        light.checked = state
+        socket.send(JSON.stringify({"type":"status","state": state })) 
+    })
+}
+onLoad()
+</script>
+
+<style>
+/* Nice defaults */
+* {
+  box-sizing: border-box;
+}
+html, body { height: 100%; } 
+html,body{
+  margin    : 0px;
+  top       : 0px;
+  background: white;
+  overflow-x: hidden;
+  font-family: lato, sans-serif;
+}
+
+.status{
+    padding-top: 20px;
+    font-size: 20px;
+    text-align: center;
+    color: #D4D4D4;
+}
+.center{
+    display: grid;
+    width: 100%;
+    height: 100%;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+    position: absolute;
+    top:0;
+}
+
+/* Switch taken from https://www.w3schools.com/howto/howto_css_switch.asp */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 120px;
+  height: 64px;
+}
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 52px;
+  width: 52px;
+  left: 6px;
+  bottom: 6px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: #2196F3;
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(52px);
+  -ms-transform: translateX(52px);
+  transform: translateX(52px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+</style>
+
+</html>
