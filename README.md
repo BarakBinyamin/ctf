@@ -62,7 +62,8 @@ Getting full control of the IOT light
 1. Use tools like [Fing](https://apps.apple.com/au/app/fing-network-scanner/id430921107) and [Wireshark](https://www.wireshark.org/download.html) to find the IOT-light connected to the wifi
 2. Setup a malicous router with same wifi and ssid as the target, connect malicous servers to it
 3. Use the Maurauder to disconnect the **IOT-Light** so it will recconnect to the fake access point
-4. When a request to get the new firmware is made, the IOT-light will get the firmware provided by the malicous servers
+4. Identify web requests from the IOT-light using network tools like `tcpdump` and wireshark
+5. When another request to get the new firmware is made, the IOT-light will get the firmware provided by the malicous servers
 
 #### Attack Prep Part 1/2 - Create an ESP32Marauder
 1. Open the [ESP32Marauder](ESP32Marauder) folder in vscode, let platformio process
