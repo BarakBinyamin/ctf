@@ -1,14 +1,7 @@
 # Capture The Flag 
 Attack surface, attack tooling, and patch included
 
-#TODO diagrams
-
-attack
-iot-light
-  ESP32Marauder
-  esp32_nat_router
-  servers
-img
+Diagrams coming soon...
 
 Directory
 - [Project Directory](#project-directory) 
@@ -38,28 +31,40 @@ Directory
 - [Patch]()
 ### Requirements
 #### Hardware
-- [3 ESP32 dev boards]()
-- [Micro usb cable]()
-- [Breadboard]()
-- [Led's]()
-- [Resistors]()
+- [3 ESP32 dev boards](https://www.amazon.com/s?k=3+esp32+wrover), typically boards with an esp32 that has a cap with more detailed descriptions are higher quality,  3 for $15 is a good deal as of 2023
+- [Micro usb cable](https://www.amazon.com/s?k=microusb)
+- [Breadboard](https://www.amazon.com/s?k=breadboards)
+- [Led's](https://www.amazon.com/s?k=leds+100+pieces+color)
+- [Resistors](https://www.amazon.com/s?k=resistor+kit)
 
 #### Software
-- [VScode]()
-- [PlatformIO vscode extension]()
+- [VScode](https://code.visualstudio.com/Download)
+- [PlatformIO vscode extension](https://platformio.org/install/ide?install=vscode)
+- [Nodejs](https://nodejs.org/en)
 - [This Repo](https://github.com/BarakBinyamin/ctf)
 ```
 git clone https://github.com/BarakBinyamin/ctf.git && cd ctf
 ```
 
 ### Setup - Create an IOT Light
-1. Open [iot-light](iot-light) in its own vscode window
-2. Plug in an esp32
-3. Add wifi credentials to [iot-light/include/config.h](iot-light/include/config.h) 
-3. PlatformIO <img src="https://github.com/BarakBinyamin/RIT-CE-toolbox/assets/60147768/15385a35-3bf9-4561-a204-b651d776f4a1" width="15" height="15">->blue1->upload&monitor
+Use [this diagram]() as a reference to wire up your IOT-Light
+1. Open [iot-light/app](iot-light/app) a terminal 
+2. From the cmd line run `node index.js` to launch the app server, the app should be available at [http://localhost](http://localhost), `http://<your ip address>`, and `http://<your hostname>`, scan the QR code to jump to the app on your phone if your on the same wifi as your laptop
+3. Run the `hostname` command in a bash terminal to find the hostname of your computer
+4. Open [iot-light/light](iot-light/light) in its own vscode window
+5. Plug in an esp32 dev board
+6. Add your wifi credentials and hostname to [iot-light/include/config.h](iot-light/include/config.h) 
+7. PlatformIO <img src="https://github.com/BarakBinyamin/RIT-CE-toolbox/assets/60147768/15385a35-3bf9-4561-a204-b651d776f4a1" width="15" height="15">->blue1->upload&monitor
 
 ### Attack
-#### Create an ESP32Marauder
+Getting full control of the IOT light
+#### Overview
+1. Use tools like [Fing](https://apps.apple.com/au/app/fing-network-scanner/id430921107) and [Wireshark](https://www.wireshark.org/download.html) to find the IOT-light connected to the wifi
+2. Setup a malicous router with same wifi and ssid as the target, connect malicous servers to it
+3. Use the Maurauder to disconnect the **IOT-Light** so it will recconnect to the fake access point
+4. When a request to get the new firmware is made, the IOT-light will get the firmware provided by the malicous servers
+
+#### Attack Prep Part 1/2 - Create an ESP32Marauder
 1. Open the [ESP32Marauder](ESP32Marauder) folder in vscode, let platformio process
 2. From the platformio menu, select upload
 3. Connect to the **MarauderOTA** wifi, password is **justcallmekoko**
@@ -109,7 +114,7 @@ CLI Ready
 --------------------------------
 >#
 ``` 
-#### Create a mini wifi router
+#### Attack Prep Part 2/2 - Create a mini wifi router
 1. Open the esp32_nat_server folder in vscode, let platformio process, then press the upload button 
 2. On another device you should see a wifi named **ESP32 NAT router**, connect
 3. A router settings page should be available @ [http://192.168.4.1](http://192.168.4.1)
@@ -120,24 +125,29 @@ For reference, the following line in [esp32_nat_router/main/esp32_nat_router.c](
 ```
 
 #### Launching an attack
-##### Overview
-1. Use tools like [Fing]() and [Wireshark]() to find the target on the wifi
-2. Start a malicous router with same wifi and ssid as the target, connect to it and start up malicous servers
-3. Use the Maurauder to disconnect the **IOT-Light** so it will recconnect to the fake access point
-4. When a request to get the new firmware is made, it will use the firmware provided by our servers
 
-##### Finding the target
-[Fing]()
+##### Finding the target, analyaizing newtork requests
+Options  
+- Use [Fing](https://apps.apple.com/au/app/fing-network-scanner/id430921107) to identify devices on the same network
+- Use the maurader to discconect the target from the wifi, host a router that will route dns requests to your computer, use a dns server to analze requests made from the target. 
+- On a malicous router running linux, it is possible to view network traffic using `tcpdump`
+
 ##### Use Maurauder to disconnect the **IOT-Light** 
-3. `scanap` with the marauder to save a list of access points
-4. `scansta` with the marauder to save a list of stations and their access points
-5. list -c to find the router with ssid and maximum connection (That's our real router) 
-6. `select -a <ap-number>` to select the device to fake death packets from so devices will switch to the fake access point
+1. `scanap` with the marauder to save a list of access points
+2. `stopscan` after you've seen the ssid the **IOT-light** is connected to
+3. `scansta` with the marauder to save a list of stations and their access points
+4. `stopscan` after about 30 seconds
+4. `list -c` to find the router with ssid and maximum connection (That's our real router) 
+5. `select -a <ap-number>` to select the device to fake death packets from so devices will switch to the fake access point
+6. `attack -t deauth`, but `attack -t probe` may also work
 
 #### Patch for the attack
-Have the iot device check the authorship of the tls certificates
+Have the iot device check the authorship of the tls certificate
 
 #TODO what is tls and how is authorship confirmed
+<p style="text-align:center">
+<img width="50%" src="img/Cert_signature.png"/>
+</p>
 
 ## More Attacks
 ### Information Disclosure - Viewing Traffic
@@ -167,6 +177,7 @@ Wireless communication represents a hardware security risk, being that another W
 # Resources
 - [https randomnerd](https://randomnerdtutorials.com/esp32-https-requests/)
 https://www.the-qrcode-generator.com/
+- [EAP](https://en.wikipedia.org/wiki/Extensible_Authentication_Protocol)
 
 # Refrences & Kudos
 - [cert sgned image](https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions/)
