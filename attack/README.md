@@ -5,6 +5,12 @@ Getting full control of the IOT light
 3. Use the Maurauder to disconnect the **IOT-Light** so it will recconnect to the fake access point
 4. When a request to get the new firmware is made, the IOT-light will get the firmware provided by the malicous servers
 
+| Name                                     | Purpose                                                       | 
+| :--                                      | :--                                                           |
+|[esp32_nat_router](esp32_nat_router)      | A configurable router for esp32, used to dns spoof            |
+|[ESP32Marauder](ESP32Marauder)            | Wifi security firmware for esp32 to run deauth attacks        |
+|[servers](servers)                        | Malicous dns, http, and https servers                         |
+
 # Wireshark
 - [https://superuser.com/questions/884035/wireshark-monitor-mode-decrypting-capture](https://superuser.com/questions/884035/wireshark-monitor-mode-decrypting-capture)
 wlan.sa==9A:48:11:F7:42:AC and ip.addr ==

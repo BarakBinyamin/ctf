@@ -13,10 +13,9 @@ Directory
 ## Project Directory
 | Name                                     | Purpose                                                       | 
 | :--                                      | :--                                                           |
-|[esp32_nat_router](esp32_nat_router)      | A configurable router for esp32, used to dns spoof            |
-|[ESP32Marauder](ESP32Marauder)            | Wifi security firmware for esp32 to run deauth attacks        |
-|[iot-lght](iot-light)                     | A wireless lamp with OTA (over the air) updates               |
-|[servers](servers)                        | Malicous dns, http, and https servers                         |
+|[attack](attack)                          | Resources for an attack on the IOT-light                      |
+|[img](img)                                | Docs & diagrams                                               |
+|[iot-lght](iot-light)                     | Firmware, Server, & UI for an IOT light                       |
 
 ## Quickstart
 - [Requirements](#requirements)
@@ -25,10 +24,10 @@ Directory
 - [Setup](#setup---create-an-iot-light)
   - [Create an iot-lght](#setup---create-an-iot-light)
 - [Attack](#attack)
-  - [Create an ESP32Marauder](#create-an-esp32marauder)
-  - [Create a mini wifi router](#create-a-mini-wifi-router)
+  - [Create an ESP32Marauder](#attack-prep-part-12---create-an-esp32marauder)
+  - [Create a mini wifi router](#attack-prep-part-22---create-a-mini-wifi-router)
   - [Launching an attack](#launching-an-attack)
-- [Patch]()
+- [Patch](#patch-for-the-attack)
 ### Requirements
 #### Hardware
 - [3 ESP32 dev boards](https://www.amazon.com/s?k=3+esp32+wrover), typically boards with an esp32 that has a cap with more detailed descriptions are higher quality,  3 for $15 is a good deal as of 2023
