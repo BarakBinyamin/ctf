@@ -13,14 +13,14 @@ const server = dns2.createServer({
       type: Packet.TYPE.A,
       class: Packet.CLASS.IN,
       ttl: 300,
-      address: '192.168.4.2'
+      address: '192.168.4.2' // Resolve all dns requests to '192.168.4.2', instead of 8.8.8.8
     }); 
     send(response);
   }
 });
 
 server.on('request', (request, response, rinfo) => {
-  console.log(request.header.id, request.questions[0]);
+  console.log(request.header.id, request.questions[0]); // print out the requests when recieved
 });
 
 server.on('requestError', (error) => {

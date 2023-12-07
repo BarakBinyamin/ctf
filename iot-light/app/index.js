@@ -67,14 +67,14 @@ app.ws('/', function(ws, req) {
 
 // Serve the firware for updates
 app.get('/device',(req,res)=>{
-    res.sendFile('device.html',{root:'.'})
+    res.sendFile('device.html',{root:`${__dirname}`})
 })
 // Serve UI
 app.get('/device',(req,res)=>{
-    res.sendFile('device.html',{root:'.'})
+    res.sendFile('device.html',{root:`${__dirname}`})
 })
 app.get('/*',(req,res)=>{
-    res.sendFile('index.html',{root:'.'})
+    res.sendFile('index.html',{root:`${__dirname}`})
 })
 
 // Start server & give a QR code for the UI addi

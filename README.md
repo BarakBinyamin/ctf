@@ -65,10 +65,10 @@ Use [this diagram]() as a reference to wire up your IOT-Light
 Getting full control of the IOT light
 #### Overview
 1. Use tools like [Fing](https://apps.apple.com/au/app/fing-network-scanner/id430921107) and [Wireshark](https://www.wireshark.org/download.html) to find the IOT-light connected to the wifi
-2. Setup a malicous router with same wifi and ssid as the target, connect malicous servers to it
+2. Setup a malicous router with same wifi and ssid as the target, launch & connect [malicous servers](attack/servers) to it
 3. Use the Maurauder to disconnect the **IOT-Light** so it will recconnect to the fake access point
 4. Identify web requests from the IOT-light using network tools like `tcpdump` and wireshark
-5. When another request to get the new firmware is made, the IOT-light will get the firmware provided by the malicous servers
+5. When a request to get the new firmware is made, the IOT-light will get the firmware provided by the malicous servers
 
 #### Attack Prep Part 1/2 - Create an ESP32Marauder
 1. Open the [ESP32Marauder](ESP32Marauder) folder in vscode, let platformio process
@@ -155,15 +155,6 @@ Have the iot device check the authorship of the tls certificate
 <img width="50%" src="img/Cert_signature.png"/>
 </p>
 
-## More Attacks
-### Information Disclosure - Viewing Traffic
-#TODO
-### Denial of service - Deauth
-#TODO
-### Spoofing/Repudiation - Deauth + Malicous Router
-#TODO
-### Elevation of Privilege - Uploading new code onto device
-#TODO
 
 ## Motivation
 IOT devices are commonly built with certain hardware constraints, limiting them to use IP over wifi or some subset of wireless communication protocol like Zigbee or espnow to interact with each other
@@ -188,9 +179,8 @@ https://www.the-qrcode-generator.com/
 # Refrences & Kudos
 - [cert sgned image](https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions/)
 - [https randomnerd](https://randomnerdtutorials.com/esp32-https-requests/)
-https://www.quora.com/What-prevents-people-from-harvesting-WiFi-passwords-by-setting-up-a-fake-access-point-with-the-same-SSID-as-their-target
+- [wifi passwords are encryption keys](https://www.quora.com/What-prevents-people-from-harvesting-WiFi-passwords-by-setting-up-a-fake-access-point-with-the-same-SSID-as-their-target)
 
-#todo formatting
-
-[1] Amazon, _cert signed image_,https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions
-[2]asd 
+#todo formatting  
+[1] Amazon, _cert signed image_,https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions  
+[2] asd 

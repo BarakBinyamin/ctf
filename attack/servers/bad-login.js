@@ -9,12 +9,11 @@ const ADDRESS   = ip.address()
 const PORT      = 80
 const qrcode    = require('qrcode-terminal')
 
-
-const credentials = { key: fs.readFileSync(`keys/key.pem`), cert: fs.readFileSync(`keys/cert.pem`), passphrase: 'abcdef'}
+const credentials = { key: fs.readFileSync(`${__dirname}/keys/key.pem`), cert: fs.readFileSync(`${__dirname}/keys/cert.pem`), passphrase: 'abcdef'}
 
 const app = express()
 
-app.use(express.static('./dist'))
+app.use(express.static(`${__dirname}/dist`))
 app.get('/gotyou',(req,res)=>{
   const username = req.query?.username
   const pass     = req.query?.password
@@ -24,7 +23,7 @@ app.get('/gotyou',(req,res)=>{
   res.end(`<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><html>Your device is already registered with RIT, please use eduroam</html>`);
 })
 app.get('/*',(req,res)=>{
-  res.sendFile('./dist/index.html', {root: '.'})
+  res.sendFile('./dist/index.html', {root: `${__dirname}`})
 })
 
 let normalServer = http.createServer(app)
