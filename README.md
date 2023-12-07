@@ -1,7 +1,10 @@
 # Capture The Flag 
 Attack surface, attack tooling, and patch included
 
-Diagrams coming soon...
+<p align="center">
+<img  width="35%" src="img/iot-app-redteam.png">
+</p>
+
 
 Directory
 - [Project Directory](#project-directory) 
@@ -172,15 +175,14 @@ Wireless communication represents a hardware security risk, being that another W
 [Here is a paper about this project](), [Here are some slides too]()
 
 # Resources
-- [https randomnerd](https://randomnerdtutorials.com/esp32-https-requests/)
-https://www.the-qrcode-generator.com/
-- [EAP](https://en.wikipedia.org/wiki/Extensible_Authentication_Protocol)
+- [Rui & Sarah Santos: ESP32 https requests](https://randomnerdtutorials.com/esp32-https-requests/)
+- [QR code generator](https://www.the-qrcode-generator.com/)
+- [Whats EAP](https://en.wikipedia.org/wiki/Extensible_Authentication_Protocol)
+
 
 # Refrences & Kudos
-- [cert sgned image](https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions/)
-- [https randomnerd](https://randomnerdtutorials.com/esp32-https-requests/)
-- [wifi passwords are encryption keys](https://www.quora.com/What-prevents-people-from-harvesting-WiFi-passwords-by-setting-up-a-fake-access-point-with-the-same-SSID-as-their-target)
+- [Cert signed image](https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions/)
+- [Wifi passwords are encryption keys](https://www.quora.com/What-prevents-people-from-harvesting-WiFi-passwords-by-setting-up-a-fake-access-point-with-the-same-SSID-as-their-target)
 
-#todo formatting  
 [1] Amazon, _cert signed image_,https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions  
 [2] asd 
