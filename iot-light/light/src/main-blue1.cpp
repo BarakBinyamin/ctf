@@ -26,17 +26,7 @@ This is an iot lamp
 1. It will listen to request to set an led
 2. After 2 minutes it trys to update it's firmware to the next version
 */
-
-void connectToWifi(){
-  WiFi.begin(SSID,PASS);
-  Serial.println("Connecting");
-  while(WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.print("Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
+void connectToWS(){
   Serial.println("Connecting to websockets server...");
   int attempts = 0;
   bool connected = ws.connect(WSSERVER, WSPORT, "/?id=device");
@@ -52,6 +42,20 @@ void connectToWifi(){
     Serial.println("\nTimed out attempting to connect to websockets server...");
     digitalWrite(BLUE_LED, HIGH);
   }
+  // request update when server is down?
+}
+
+void connectToWifi(){
+  WiFi.begin(SSID,PASS);
+  Serial.println("Connecting");
+  while(WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("Connected to WiFi network with IP Address: ");
+  Serial.println(WiFi.localIP());
+  connectToWS();
 }
 
 String checkForUpdate(){
@@ -188,9 +192,7 @@ void setup() {
   });
 }
 void loop() {
-  if(ws.available()) {
-    ws.poll();
-  }
+  if(ws.available()){ws.poll();}else{connectToWS();}
   delay(500);
   wait_time+=.5;
   // if (wait_time>120){

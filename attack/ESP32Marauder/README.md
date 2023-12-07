@@ -31,7 +31,7 @@ UnknownPackageError: Could not find the package with 'espressif32 @ 2.0.1' requi
 ### Maybe just try arduino?
 1. Go to ls "/Users/`whoami`/Library/Arduino15"
 2. Do a bunch of stuff that breaks your arduino ide dependencies
-3. Then find on reddit that there's already a binary for it premade for the devkit [https://www.reddit.com/r/flipperzero/comments/zgxkjd/questionesp32_for_marauder/](https://www.reddit.com/r/flipperzero/comments/zgxkjd/questionesp32_for_marauder/) What? the was OTA upload tool for normal dev boards too! reddit says... yup
+3. Then find on reddit that there's already a binary for it premade for the devkit [https://www.reddit.com/r/flipperzero/comments/zgxkjd/questionesp32_for_marauder/](https://www.reddit.com/r/flipperzero/comments/zgxkjd/questionesp32_for_marauder/) What? The OTA upload tool was for normal dev boards too! reddit says... yup
 
 This has been emotional
 

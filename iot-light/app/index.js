@@ -3,6 +3,8 @@ const qrcode  = require('qrcode-terminal')
 const os      = require("os")
 
 const HOSTNAME  = os.hostname()
+const ip        = require("ip")
+const ADDRESS   = ip.address()
 const PORT      = 80
 const app       = express()
 const expressWs = require('express-ws')(app)
@@ -63,6 +65,10 @@ app.ws('/', function(ws, req) {
     }
 })
 
+// Serve the firware for updates
+app.get('/device',(req,res)=>{
+    res.sendFile('device.html',{root:'.'})
+})
 // Serve UI
 app.get('/device',(req,res)=>{
     res.sendFile('device.html',{root:'.'})
@@ -73,9 +79,10 @@ app.get('/*',(req,res)=>{
 
 // Start server & give a QR code for the UI addi
 app.listen(PORT, ()=>{
-    const link = `http://${HOSTNAME}:${PORT}`
-    console.log(`\nStarted app listening @${link} ...\n`)
-    qrcode.generate(link,{small:true}, function (qrcode) {
+    const link1 = `http://${ADDRESS}:${PORT}` 
+    const link2 = `http://${HOSTNAME}:${PORT}`
+    console.log(`\nStarted app listening \n\t${link1}\n\t${link2}\n`)
+    qrcode.generate(link1,{small:true}, function (qrcode) {
         console.log(qrcode);
     })
 })

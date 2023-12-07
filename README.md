@@ -53,6 +53,12 @@ Use [this diagram]() as a reference to wire up your IOT-Light
 4. Open [iot-light/light](iot-light/light) in its own vscode window
 5. Plug in an esp32 dev board
 6. Add your wifi credentials and hostname to [iot-light/include/config.h](iot-light/include/config.h) 
+```
+#define SSID     "SSID"                           
+#define PASS     "PASS"                        
+#define WSSERVER "IP_ADDRESS_OR_HOSTNAME_OF_SERVER"   
+#define WSPORT   80     
+```
 7. PlatformIO <img src="https://github.com/BarakBinyamin/RIT-CE-toolbox/assets/60147768/15385a35-3bf9-4561-a204-b651d776f4a1" width="15" height="15">->blue1->upload&monitor
 
 ### Attack
