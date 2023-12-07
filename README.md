@@ -2,7 +2,7 @@
 Attack surface, attack tooling, and patch included
 
 <p align="center">
-<img  width="%" src="img/iot-app-redteam.png">
+<img  width="50%" src="img/iot-app-redteam.png">
 </p>
 
 
