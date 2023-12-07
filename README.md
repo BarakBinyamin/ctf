@@ -2,7 +2,7 @@
 Attack surface, attack tooling, and patch included
 
 <p align="center">
-<img  width="50%" src="img/iot-app-redteam.png">
+<img  width="%" src="img/iot-app-redteam.png">
 </p>
 
 
@@ -135,7 +135,7 @@ For reference, the following line in [esp32_nat_router/main/esp32_nat_router.c](
 
 #### Launching an attack
 
-##### Finding the target, analyaizing newtork requests
+##### Finding the target, analysing newtork requests
 Options  
 - Use [Fing](https://apps.apple.com/au/app/fing-network-scanner/id430921107) to identify devices on the same network
 - Use the maurader to discconect the target from the wifi, host a router that will route dns requests to your computer, use a dns server to analze requests made from the target. 
