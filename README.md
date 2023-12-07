@@ -18,7 +18,7 @@ Directory
 | :--                                      | :--                                                           |
 |[attack](attack)                          | Resources for an attack on the IOT-light                      |
 |[img](img)                                | Docs & diagrams                                               |
-|[iot-lght](iot-light)                     | Firmware, Server, & UI for an IOT light                       |
+|[iot-lght](iot-light)                     | Firmware, Server, & UI for an IOT-light                       |
 
 ## Quickstart
 - [Requirements](#requirements)
@@ -178,7 +178,7 @@ Wireless communication represents a hardware security risk, being that another W
 - [Rui & Sarah Santos: ESP32 https requests](https://randomnerdtutorials.com/esp32-https-requests/)
 - [QR code generator](https://www.the-qrcode-generator.com/)
 - [Whats EAP](https://en.wikipedia.org/wiki/Extensible_Authentication_Protocol)
-
+- [Fritzing arduino diagram tool]()
 
 # Refrences & Kudos
 - [Cert signed image](https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions/)
