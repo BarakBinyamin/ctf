@@ -55,7 +55,7 @@ Use [this diagram]() as a reference to wire up your IOT-Light
 3. Run the `hostname` command in a bash terminal to find the hostname of your computer
 4. Open [iot-light/light](iot-light/light) in its own vscode window
 5. Plug in an esp32 dev board
-6. Add your wifi credentials and hostname to [iot-light/include/config.h](iot-light/include/config.h) 
+6. Add your wifi credentials and hostname to [iot-light/light/include/config.h](iot-light/light/include/config.h) 
 ```
 #define SSID     "SSID"                           
 #define PASS     "PASS"                        
