@@ -11,7 +11,7 @@ Directory
 - [Quickstart](#quickstart)
 - [Motivation](#motivation)
 - [Resources](#resources)
-- [References](#refrences--kudos)
+- [References](#references)
 
 ## Project Directory
 | Name                                     | Purpose                                                       | 
@@ -141,28 +141,34 @@ Options
 - Use the maurader to discconect the target from the wifi, host a router that will route dns requests to your computer, use a dns server to analze requests made from the target. 
 - On a malicous router running linux, it is possible to view network traffic using `tcpdump`
 
-##### Use Maurauder to disconnect the **IOT-Light** 
-1. `scanap` with the marauder to save a list of access points
-2. `stopscan` after you've seen the ssid the **IOT-light** is connected to
-3. `scansta` with the marauder to save a list of stations and their access points
-4. `stopscan` after about 30 seconds
-4. `list -c` to find the router with ssid and maximum connection (That's our real router) 
-5. `select -a <ap-number>` to select the device to fake death packets from so devices will switch to the fake access point
-6. `attack -t deauth`, but `attack -t probe` may also work
+##### Spoofing the **IOT-Light** 
+1. `ls /dev/tty*` to find your usb connection to your mauraduer
+2. `screen /dev/tty<USB1orSomething> 115200`, type `help` for a help menu to pop up
+3. `scanap` with the marauder to save a list of access points
+4. `stopscan` after you've seen the ssid the **IOT-light** is connected to
+5. `list -a` to list the wifi ap's
+6. `select -a -f "contains <unique substring of the ap to attack>"` to select the device(s) to fake death packets from so connected devices will switch to the fake access point (if its in range)
+7. Power up the bad router with the wifi credentials of the ap to attack
+8. Connect to it, the blue light will start blinking
+9. Keep the screen terminal open, open two terminals in the main ctf directory
+10. In one run ``cd attack/servers && npm install``, then `node attack/servers/dns-server.js`
+11. In the other run `node attack/index.js`
+12. In the screeen terminal `attack -t deauth`, but `attack -t probe` may also work, now hopefully the iot-light will connect to the bad router, all dns & http requests will be redirected to your machine, and you'll be able to replace the firmware when a request is made on the iot-ligh (when it starts flashing), watch the other two terminals for requests
 
 #### Patch for the attack
 Have the iot device check the authorship of the tls certificate
 
 #TODO what is tls and how is authorship confirmed
-<p style="text-align:center">
+<p align="center">
 <img width="50%" src="img/Cert_signature.png"/>
+<p align="center">Image Taken From <a src="https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions">Thesslstore</a></p>
 </p>
 
 
 ## Motivation
 IOT devices are commonly built with certain hardware constraints, limiting them to use IP over wifi or some subset of wireless communication protocol like Zigbee or espnow to interact with each other
 
-Wireless communication represents a hardware security risk, being that another Wi-Fi capable device in close proximity could intercept data without being detected, as well mascaraed as the intended recipient and send back malicious data
+Wireless communication represents a greater hardware security risk than a wired connection. The that cost of attacks are reduced when physical access is extened to a larger range and physical techniques for wire tapping are not required  
 
 [Hardware security threats](https://en.wikipedia.org/wiki/STRIDE_(security)) are all across the board, including 
 - **Spoofing** ex. Malicious router broadcasting the same name/ssid as a trusted router
@@ -179,10 +185,9 @@ Wireless communication represents a hardware security risk, being that another W
 - [QR code generator](https://www.the-qrcode-generator.com/)
 - [Whats EAP](https://en.wikipedia.org/wiki/Extensible_Authentication_Protocol)
 - [Fritzing arduino diagram tool]()
-
-# Refrences & Kudos
-- [Cert signed image](https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions/)
 - [Wifi passwords are encryption keys](https://www.quora.com/What-prevents-people-from-harvesting-WiFi-passwords-by-setting-up-a-fake-access-point-with-the-same-SSID-as-their-target)
 
-[1] Amazon, _cert signed image_,https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions  
-[2] asd 
+# References
+- [Dr. Michael Zuzak](https://www.rit.edu/directory/mjzeec-michael-zuzak), _CMPE 361 Intro to Hardware Security Course_ & Advising, Contact For Resources
+- [Long lam](https://www.linkedin.com/in/long-lam-5943281b1/), _Hardware Security Tutorials & Advising_, Contact For Resources
+- [Thesslstore](https://www.thesslstore.com), _Signed Cert Image_, https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions  

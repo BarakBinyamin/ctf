@@ -11,13 +11,16 @@ Getting full control of the IOT light
 |[ESP32Marauder](ESP32Marauder)            | Wifi security firmware for esp32 to run deauth attacks        |
 |[servers](servers)                        | Malicous dns, http, and https servers                         |
 
-# Wireshark
+# Wireshark Testing
 - [https://superuser.com/questions/884035/wireshark-monitor-mode-decrypting-capture](https://superuser.com/questions/884035/wireshark-monitor-mode-decrypting-capture)
-wlan.sa==9A:48:11:F7:42:AC and ip.addr ==
-wlan.sa==9A:48:11:F7:42:AC and (tcp or dns)
+- Some helpful filters
+```
+wlan.sa==12:48:11:31:42:33 and ip.addr ==
+wlan.sa==12:48:11:31:42:33 and (tcp or dns)
 Enable WPA key length override helped
 eapol
-wlan.sa==9A:48:11:F7:42:AC
+wlan.sa==12:48:11:31:42:33
+```
 
 # TCP dump
 sudo tcpdump src 192.168.1.130
