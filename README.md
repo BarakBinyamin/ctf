@@ -79,7 +79,7 @@ Getting full control of the IOT light
 3. Connect to the **MarauderOTA** wifi, password is **justcallmekoko**
 4. Go to [192.18.4.1](http://192.18.4.1)
 5. Login with user **admin** password **admin**
-6. Choose file -> [.../ESP32Marauder/esp32_marauder_v0_13_3_20231114_old_hardware.bin](ESP32Marauder/esp32_marauder_v0_13_3_20231114_old_hardware.bin), and select update
+6. Choose file -> [attack/ESP32Marauder/esp32_marauder_v0_13_3_20231114_old_hardware.bin](attack/ESP32Marauder/esp32_marauder_v0_13_3_20231114_old_hardware.bin), and select update
 7. Wait like 60 seconds, a little after the 100% percent feedback is reached
 8. Great! You made a marauder! Now you can connect over serial using the platformio monitor button, after a few confguartion messages the cli should pop up
 ```
@@ -128,7 +128,7 @@ CLI Ready
 2. On another device you should see a wifi named **ESP32 NAT router**, connect
 3. A router settings page should be available @ [http://192.168.4.1](http://192.168.4.1)
 
-For reference, the following line in [esp32_nat_router/main/esp32_nat_router.c](esp32_nat_router/main/esp32_nat_router.c) has been changed so that the first device connnected is the default dns server if traffic is not being forwarded to another router
+For reference, the following line in [attack/esp32_nat_router/main/esp32_nat_router.c](attack/esp32_nat_router/main/esp32_nat_router.c) has been changed so that the first device connnected is the default dns server if traffic is not being forwarded to another router
 ```c++
 #define DEFAULT_DNS "192.168.4.2"
 ```
