@@ -5,7 +5,6 @@ Attack surface, attack tooling, and patch included
 <img  width="50%" src="img/iot-app-redteam.png">
 </p>
 
-
 Directory
 - [Project Directory](#project-directory) 
 - [Quickstart](#quickstart)
@@ -45,11 +44,13 @@ Directory
 - [Nodejs](https://nodejs.org/en)
 - [This Repo](https://github.com/BarakBinyamin/ctf)
 ```
-git clone https://github.com/BarakBinyamin/ctf.git && cd ctf
+git clone <your fork URL> && cd ctf
 ```
 
+
 ### Setup - Create an IOT Light
-First wire up an LED to GPIO32(D32) and a ground pin
+The IOT-light, uses hardcoded credentials to connect to WiFi, check for updates and communications by connecting to a custom server, and if an update was available, will pull a new firmware from github.com or whereever the server tells it to
+1. Wire up an LED to GPIO32(D32) and a ground pin
 1. Open [iot-light/app](iot-light/app) a terminal 
 2. From the cmd line run `node index.js` to launch the app server, the app should be available at [http://localhost](http://localhost), `http://<your ip address>`, and `http://<your hostname>`, scan the QR code to jump to the app on your phone if your on the same wifi as your laptop
 3. Run the `hostname` command in a bash terminal to find the hostname of your computer
@@ -63,6 +64,8 @@ First wire up an LED to GPIO32(D32) and a ground pin
 #define WSPORT   80     
 ```
 7. PlatformIO <img src="https://github.com/BarakBinyamin/RIT-CE-toolbox/assets/60147768/15385a35-3bf9-4561-a204-b651d776f4a1" width="15" height="15">->blue1->upload&monitor
+8. Build all the other targets too, copy the firmware over to the releases folder and rename them `v<1-3>.bin` except for the red firmware, name that `red-firmware.bin`, this will be refrenced in the malicous server
+9. Change the base address to your github fork url in [iot-light/app/index.js](iot-light/app/index.js)
 
 ### Attack
 Getting full control of the IOT light
@@ -152,7 +155,7 @@ Options
 8. Connect to it, the blue light will start blinking
 9. Keep the screen terminal open, open two terminals in the main ctf directory
 10. In one run ``cd attack/servers && npm install``, then `node attack/servers/dns-server.js`
-11. In the other run `node attack/index.js`
+11. In the other run `node attack/servers/bad-firmware.js`
 12. In the screeen terminal `attack -t deauth`, but `attack -t probe` may also work, now hopefully the iot-light will connect to the bad router, all dns & http requests will be redirected to your machine, and you'll be able to replace the firmware when a request is made on the iot-ligh (when it starts flashing), watch the other two terminals for requests
 
 ##### Spoofing the **IOT-Light** 

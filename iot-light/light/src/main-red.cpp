@@ -186,7 +186,7 @@ void connectToWifi(){
 */
 void setup() {
   Serial.begin(115200); 
-  Serial.print("\n\n<--------Version ");Serial.print(VERSION);Serial.print("----------->\n\n");
+  Serial.print("\n\n<--------Version ");Serial.print("MALWARE");Serial.print("----------->\n\n");
   
   pinMode(BLUE_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
