@@ -145,20 +145,6 @@ Options
 - On a malicous router running linux, it is possible to view network traffic using `tcpdump`
 
 ##### Spoofing the **IOT-Light** 
-1. `ls /dev/tty*` to find your usb connection to your mauraduer
-2. `screen /dev/tty<USB1orSomething> 115200`, type `help` for a help menu to pop up
-3. `scanap` with the marauder to save a list of access points
-4. `stopscan` after you've seen the ssid the **IOT-light** is connected to
-5. `list -a` to list the wifi ap's
-6. `select -a -f "contains <unique substring of the ap to attack>"` to select the device(s) to fake death packets from so connected devices will switch to the fake access point (if its in range)
-7. Power up the bad router with the wifi credentials of the ap to attack
-8. Connect to it, the blue light will start blinking
-9. Keep the screen terminal open, open two terminals in the main ctf directory
-10. In one run ``cd attack/servers && npm install``, then `node attack/servers/dns-server.js`
-11. In the other run `node attack/servers/bad-firmware.js`
-12. In the screeen terminal `attack -t deauth`, but `attack -t probe` may also work, now hopefully the iot-light will connect to the bad router, all dns & http requests will be redirected to your machine, and you'll be able to replace the firmware when a request is made on the iot-ligh (when it starts flashing), watch the other two terminals for requests
-
-##### Spoofing the **IOT-Light** 
 1. Open 3 terminals in the main project directory
 2. Download the malicicous servers local dependencies ``cd attack/servers && npm install``
 3. Connect to the mauraduer with screen, `ls /dev/tty*` to find your usb connection to your mauraduer, then `screen /dev/tty<USB1orSomething> 115200`, type `help` for a help menu to pop up
