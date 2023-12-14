@@ -1,22 +1,182 @@
+#include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <WiFiClientSecure.h>
+#include <Update.h>
+#include <ArduinoWebsockets.h>
+#include <ArduinoJson.h>
+#include <SPIFFS.h>
+#include "config.h"
 
+#define   VERSION            3
+#define   VERSION_URL        "/version"
+#define   FIRMWARE_URL       "/whatisthefirmwareurl"
+#define   FIRMWARE_PATH      "/firmware"
+#define   BLUE_LED           LED_BUILTIN
+#define   RED_LED            32
+#define   BLINK_RATE         2                        // time on/off in intervals of .5 seconds
 
-const char* ssid = "NotWifi";     //"Verizon_JM6PG6"; //ESP32_NAT_Router";
-const char* pass = "7CharlesAve"; //"BinyaminHaus5!";
+using namespace websockets;
+WebsocketsClient ws;
+bool             LIGHT_ON  = false;
+const char*      root_certificate = "-----BEGIN CERTIFICATE-----\n"        \
+"MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\n"  \  
+"MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n"  \
+"d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\n"  \
+"QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT\n"  \
+"MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j\n"  \
+"b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG\n"  \
+"9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB\n"  \
+"CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97\n"  \
+"nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt\n"  \
+"43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P\n"  \
+"T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4\n"  \
+"gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO\n"  \
+"BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR\n"  \
+"TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw\n"  \
+"DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr\n"  \
+"hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg\n"  \
+"06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF\n"  \
+"PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls\n"  \
+"YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk\n"  \
+"CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\n"                  \
+"-----END CERTIFICATE-----\n";
 
-String serverName = "https://raw.githubusercontent.com/BarakBinyamin/puttputt/main/README.md";
-unsigned long lastTime = 0;
-// Timer set to 10 minutes (600000)
-//unsigned long timerDelay = 600000;
-// Set timer to 5 seconds (5000)
-unsigned long timerDelay = 5000;
+/*
+This is a more secure iot lamp
+1. It will listen for requests to set an led on or off
+2. On connection to the wifi, the device will check /version to see if it needs an update 
+*/
+void connectToWS(){
+  Serial.println("Connecting to websockets server...");
+  int attempts = 0;
+  bool connected = ws.connect(WSSERVER, WSPORT, "/?id=device");
+  while(!connected && attempts<15){
+    attempts++;
+    Serial.print('.');
+    delay(1000);
+    connected = ws.connect(WSSERVER, WSPORT, "/?id=device");
+  }
+  if(connected){
+    Serial.println("\nConnected to websockets server...");
+  }else{
+    Serial.println("\nTimed out attempting to connect to websockets server...");
+    digitalWrite(BLUE_LED, HIGH);
+  }
+}
 
-void setup() {
-  Serial.begin(115200); 
+bool updateAvailable(){
+  HTTPClient client;
+  client.begin((String("http://") + String(WSSERVER) + String(VERSION_URL)).c_str());
+  int  httpResponseCode = client.GET();
+  bool isUpdateNeeded = false;
+  if (httpResponseCode>0 && httpResponseCode == HTTP_CODE_OK) {
+    String payload = client.getString();
+    if (payload){
+      if (payload.toInt() > VERSION){
+        isUpdateNeeded=true;
+      }
+    }
+  }
+  client.end();
+  return isUpdateNeeded;
+}
 
-  WiFi.begin(ssid,pass);
+String getUpdateURL(){
+  HTTPClient client;
+  client.begin( (String("http://") + String(WSSERVER) + String(FIRMWARE_URL)).c_str() );
+  int  httpResponseCode = client.GET();
+  String updateURL;
+  if (httpResponseCode>0 && httpResponseCode == HTTP_CODE_OK) {
+    String payload = client.getString();
+    if (payload){
+      updateURL = payload;
+    }
+  }
+  client.end();
+  return updateURL;
+}
+
+bool getUpdate(String updateURL){
+  if(SPIFFS.exists(FIRMWARE_PATH)){
+    SPIFFS.remove(FIRMWARE_PATH);
+  }
+  File file = SPIFFS.open(FIRMWARE_PATH, FILE_WRITE);
+  if(!file){
+    Serial.println("Failed to open file for writing...");
+    SPIFFS.end();
+    return false;
+  }
+
+  // Get the firmware
+  HTTPClient client;
+  bool success = false;
+  client.begin(updateURL.c_str(), root_certificate);
+  int httpResponseCode = client.GET();
+  if (httpResponseCode>0 && httpResponseCode == HTTP_CODE_OK) {
+    int totalBytes      = client.getSize();
+    int bytesLeftToRead = client.getSize();
+    uint8_t      buff[2048] = { 0 };
+    WiFiClient * stream     = client.getStreamPtr();
+    while(client.connected() && bytesLeftToRead > 0) {
+      // get available data size
+      size_t size = stream->available();
+      if(size) {
+          int numBytesToWrite = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+          size_t numBytesWritten = file.write(buff, numBytesToWrite);
+          if(bytesLeftToRead > 0) {
+              bytesLeftToRead -= numBytesToWrite;
+          }
+      }
+      Serial.print((((float)totalBytes-(float)bytesLeftToRead)/(float)totalBytes)*(float)100);Serial.println("%");
+      delay(1);
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    }
+    if (bytesLeftToRead==0 && totalBytes>0) {
+      Serial.print("New firmware update saved to SPIFFS!");
+      success=true; 
+    }else{
+      Serial.print("Failed to write image to spiffs");
+      success=false;
+    }
+  }else {
+    Serial.print("Error code from firmware URL: ");
+    Serial.println(httpResponseCode);
+  }
+  file.close();
+  client.end();
+  return success;
+}
+
+void installUpdate(void){
+  File file = SPIFFS.open(FIRMWARE_PATH, FILE_READ);
+  if(!file){
+    Serial.println("Failed to open file for reading");
+    return;
+  }
+  Serial.println("Starting update...");
+  size_t fileSize = file.size();
+  Serial.print("Firmware file size is ");Serial.print(fileSize);Serial.println("Bytes");
+  if(!Update.begin(fileSize)){
+      String error = Update.errorString();
+      Serial.println("Cannot do the update");
+      Serial.println(error);
+      return;
+  }
+  Update.writeStream(file);
+  if(Update.end()){
+    Serial.println("Successful update!");  
+  }else {
+    Serial.println("Error Occurred during update install from flash: " + String(Update.getError()));
+    return;
+  }
+  file.close();
+  Serial.println("Reset in 4 seconds...\n\n\n\n");
+  delay(4000);
+  ESP.restart();
+}
+
+void connectToWifi(){
+  WiFi.begin(SSID,PASS);
   Serial.println("Connecting");
   while(WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -25,153 +185,67 @@ void setup() {
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
- 
-  Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
-}
-
-void loop() {
-  //Send an HTTP POST request every 10 minutes
-  if ((millis() - lastTime) > timerDelay) {
-    //Check WiFi connection status
-    if(WiFi.status()== WL_CONNECTED){
-      HTTPClient http;
-
-      String serverPath = serverName;
-      
-      // Your Domain name with URL path or IP address with path
-      http.begin(serverPath.c_str());
-      
-      // If you need Node-RED/server authentication, insert user and password below
-      //http.setAuthorization("REPLACE_WITH_SERVER_USERNAME", "REPLACE_WITH_SERVER_PASSWORD");
-      
-      // Send HTTP GET request
-      int httpResponseCode = http.GET();
-      
-      if (httpResponseCode>0) {
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
-        String payload = http.getString();
-        Serial.println(payload);
+  connectToWS();
+  if (updateAvailable()){
+      Serial.println("Update Available!");
+      String updateURL      = getUpdateURL();
+      bool updateDownloaded = getUpdate(updateURL);
+      if (updateDownloaded){
+        installUpdate();
       }
-      else {
-        Serial.print("Error code: ");
-        Serial.println(httpResponseCode);
-      }
-      // Free resources
-      http.end();
-    }
-    else {
-      Serial.println("WiFi Disconnected");
-    }
-    lastTime = millis();
+  }else{
+    Serial.println("Firmware up to date...");
   }
 }
 
 
-// #include <WiFi.h>
-// #include <HTTPClient.h>
-// #include <WiFiClientSecure.h>
+/*
+* MAIN PROGRAM
+*
+* 1. Connect to wifi
+* 2. Listen to for CMD's
+*
+*/
+void setup() {
+  Serial.begin(115200); 
+  Serial.print("\n\n<--------Version ");Serial.print(VERSION);Serial.print("----------->\n\n");
+  
+  pinMode(BLUE_LED, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
 
+  // Setup spiffs for updates
+  if(!SPIFFS.begin(true)){
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
 
-// const char* ssid = "ESP32_NAT_Router";
-// const char*  server = "www.howsmyssl.com";  // Server URL
-
-// // www.howsmyssl.com root certificate authority, to verify the server
-// // change it to your server root CA
-// // SHA1 fingerprint is broken now!
-
-// const char* test_root_ca= \
-//   "-----BEGIN CERTIFICATE-----\n" \
-//   "MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw\n" \
-//   "TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh\n" \
-//   "cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMTUwNjA0MTEwNDM4\n" \
-//   "WhcNMzUwNjA0MTEwNDM4WjBPMQswCQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJu\n" \
-//   "ZXQgU2VjdXJpdHkgUmVzZWFyY2ggR3JvdXAxFTATBgNVBAMTDElTUkcgUm9vdCBY\n" \
-//   "MTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAK3oJHP0FDfzm54rVygc\n" \
-//   "h77ct984kIxuPOZXoHj3dcKi/vVqbvYATyjb3miGbESTtrFj/RQSa78f0uoxmyF+\n" \
-//   "0TM8ukj13Xnfs7j/EvEhmkvBioZxaUpmZmyPfjxwv60pIgbz5MDmgK7iS4+3mX6U\n" \
-//   "A5/TR5d8mUgjU+g4rk8Kb4Mu0UlXjIB0ttov0DiNewNwIRt18jA8+o+u3dpjq+sW\n" \
-//   "T8KOEUt+zwvo/7V3LvSye0rgTBIlDHCNAymg4VMk7BPZ7hm/ELNKjD+Jo2FR3qyH\n" \
-//   "B5T0Y3HsLuJvW5iB4YlcNHlsdu87kGJ55tukmi8mxdAQ4Q7e2RCOFvu396j3x+UC\n" \
-//   "B5iPNgiV5+I3lg02dZ77DnKxHZu8A/lJBdiB3QW0KtZB6awBdpUKD9jf1b0SHzUv\n" \
-//   "KBds0pjBqAlkd25HN7rOrFleaJ1/ctaJxQZBKT5ZPt0m9STJEadao0xAH0ahmbWn\n" \
-//   "OlFuhjuefXKnEgV4We0+UXgVCwOPjdAvBbI+e0ocS3MFEvzG6uBQE3xDk3SzynTn\n" \
-//   "jh8BCNAw1FtxNrQHusEwMFxIt4I7mKZ9YIqioymCzLq9gwQbooMDQaHWBfEbwrbw\n" \
-//   "qHyGO0aoSCqI3Haadr8faqU9GY/rOPNk3sgrDQoo//fb4hVC1CLQJ13hef4Y53CI\n" \
-//   "rU7m2Ys6xt0nUW7/vGT1M0NPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNV\n" \
-//   "HRMBAf8EBTADAQH/MB0GA1UdDgQWBBR5tFnme7bl5AFzgAiIyBpY9umbbjANBgkq\n" \
-//   "hkiG9w0BAQsFAAOCAgEAVR9YqbyyqFDQDLHYGmkgJykIrGF1XIpu+ILlaS/V9lZL\n" \
-//   "ubhzEFnTIZd+50xx+7LSYK05qAvqFyFWhfFQDlnrzuBZ6brJFe+GnY+EgPbk6ZGQ\n" \
-//   "3BebYhtF8GaV0nxvwuo77x/Py9auJ/GpsMiu/X1+mvoiBOv/2X/qkSsisRcOj/KK\n" \
-//   "NFtY2PwByVS5uCbMiogziUwthDyC3+6WVwW6LLv3xLfHTjuCvjHIInNzktHCgKQ5\n" \
-//   "ORAzI4JMPJ+GslWYHb4phowim57iaztXOoJwTdwJx4nLCgdNbOhdjsnvzqvHu7Ur\n" \
-//   "TkXWStAmzOVyyghqpZXjFaH3pO3JLF+l+/+sKAIuvtd7u+Nxe5AW0wdeRlN8NwdC\n" \
-//   "jNPElpzVmbUq4JUagEiuTDkHzsxHpFKVK7q4+63SM1N95R1NbdWhscdCb+ZAJzVc\n" \
-//   "oyi3B43njTOQ5yOf+1CceWxG1bQVs5ZufpsMljq4Ui0/1lvh+wjChP4kqKOJ2qxq\n" \
-//   "4RgqsahDYVvTH9w7jXbyLeiNdd8XM2w9U/t7y0Ff/9yi0GE44Za4rF2LN9d11TPA\n" \
-//   "mRGunUHBcnWEvgJBQl9nJEiU0Zsnvgc/ubhPgXRR4Xq37Z0j4r7g1SgEEzwxA57d\n" \
-//   "emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=\n" \
-//   "-----END CERTIFICATE-----\n"; 
-
-// // You can use x.509 client certificates if you want
-// //const char* test_client_key = "";   //to verify the client
-// //const char* test_client_cert = "";  //to verify the client
-
-
-// WiFiClientSecure client;
-
-// void setup() {
-//   //Initialize serial and wait for port to open:
-//   Serial.begin(115200);
-//   delay(100);
-
-//   Serial.print("Attempting to connect to SSID: ");
-//   Serial.println(ssid);
-//   WiFi.begin(ssid);
-
-//   // attempt to connect to Wifi network:
-//   while (WiFi.status() != WL_CONNECTED) {
-//     Serial.print(".");
-//     // wait 1 second for re-trying
-//     delay(1000);
-//   }
-
-//   Serial.print("Connected to ");
-//   Serial.println(ssid);
-
-//   client.setCACert(test_root_ca);
-//   //client.setCertificate(test_client_cert); // for client verification
-//   //client.setPrivateKey(test_client_key);	// for client verification
-
-//   Serial.println("\nStarting connection to server...");
-//   if (!client.connect(server, 443))
-//     Serial.println("Connection failed!");
-//   else {
-//     Serial.println("Connected to server!");
-//     // Make a HTTP request:
-//     client.println("GET https://www.howsmyssl.com/a/check HTTP/1.0");
-//     client.println("Host: www.howsmyssl.com");
-//     client.println("Connection: close");
-//     client.println();
-
-//     while (client.connected()) {
-//       String line = client.readStringUntil('\n');
-//       if (line == "\r") {
-//         Serial.println("headers received");
-//         break;
-//       }
-//     }
-//     // if there are incoming bytes available
-//     // from the server, read them and print them:
-//     while (client.available()) {
-//       char c = client.read();
-//       Serial.write(c);
-//     }
-
-//     client.stop();
-//   }
-// }
-
-// void loop() {
-//   // do nothing
-// }
+  // Setup wifi and websockets
+  connectToWifi();
+  ws.onMessage([&](WebsocketsMessage message){
+      StaticJsonDocument<200> doc;
+      DeserializationError error = deserializeJson(doc, message.data());
+      if (error) {
+        Serial.print(F("deserializeJson() failed: "));
+        Serial.println(error.f_str());
+        return;
+      }else{
+        const char* type = doc["type"];
+        if (strcmp(type,"status")==0){
+          String msg = String("{\"type\":\"status\", \"state\":" + String(LIGHT_ON)  + "}");
+          ws.send(msg);
+        }else if (strcmp(type,"change")==0){
+          LIGHT_ON = doc["state"];
+          digitalWrite(RED_LED, LIGHT_ON);
+          String msg = String("{\"type\":\"status\", \"state\":" + String(LIGHT_ON)  + "}");
+          ws.send(msg);
+        }
+      }
+      Serial.print("Got Message: ");
+      Serial.println(message.data());
+  });
+}
+void loop() {
+  if(ws.available()){ws.poll();}else{connectToWS();}
+  delay(BLINK_RATE * 500);
+  digitalWrite(BLUE_LED, !digitalRead(BLUE_LED));
+}

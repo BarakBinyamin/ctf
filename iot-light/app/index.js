@@ -9,6 +9,9 @@ const PORT      = 80
 const app       = express()
 const expressWs = require('express-ws')(app)
 
+const FIRMWARE_VERSION  = 1
+const FIRMWARE_BASE_URL = "https://raw.githubusercontent.com/BarakBinyamin/ctf/main/iot-light/light/releases"
+
 // Handle websocket connections from UI and devices
 const clients = expressWs.getWss('/').clients
 app.ws('/', function(ws, req) {
@@ -65,19 +68,24 @@ app.ws('/', function(ws, req) {
     }
 })
 
-// Serve the firware for updates
-app.get('/device',(req,res)=>{
-    res.sendFile('device.html',{root:`${__dirname}`})
+// Serve the firmware information for updates
+app.get('/version',(req,res)=>{
+    res.send(`${FIRMWARE_VERSION}`);
+})
+app.get('/whatisthefirmwareurl',(req,res)=>{
+    res.send(`${FIRMWARE_BASE_URL}/v${FIRMWARE_VERSION}.bin`);
 })
 // Serve UI
 app.get('/device',(req,res)=>{
+    // A page that acts like the iot-lamp, useful for testing
     res.sendFile('device.html',{root:`${__dirname}`})
 })
 app.get('/*',(req,res)=>{
+    // The main UI
     res.sendFile('index.html',{root:`${__dirname}`})
 })
 
-// Start server & give a QR code for the UI addi
+// Start server & give a QR code for the website made from the IP address of the host
 app.listen(PORT, ()=>{
     const link1 = `http://${ADDRESS}:${PORT}` 
     const link2 = `http://${HOSTNAME}:${PORT}`

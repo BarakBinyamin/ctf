@@ -7,24 +7,22 @@
 #include <SPIFFS.h>
 #include "config.h"
 
-//#define   UPDATE_URL    "https://mbinyaminAdministrators-MacBook-Pro-2.local/blue2-firmware.bin"
-//#define   UPDATE_URL    "https://mbinyamtorsMBP2.rochester.rr.com/blue2-firmware.bin"
-#define   UPDATE_URL      "https://raw.githubusercontent.com/BarakBinyamin/ctf/main/lamp/iot-light/releases/blue2-firmware.bin"
-#define   FIRMWARE_PATH   "/firmware"
-#define   LIGHT_STATE_ADI 0x00
-#define   BLUE_LED        LED_BUILTIN
-#define   GREEN_LED       32
-#define   RED_LED         21
+#define   VERSION            1
+#define   VERSION_URL        "/version"
+#define   FIRMWARE_URL       "/whatisthefirmwareurl"
+#define   FIRMWARE_PATH      "/firmware"
+#define   BLUE_LED           LED_BUILTIN
+#define   RED_LED            32
+#define   BLINK_RATE         1                        // time on/off in intervals of .5 seconds
 
 using namespace websockets;
 WebsocketsClient ws;
-double           wait_time = 0;
 bool             LIGHT_ON  = false;
 
 /*
 This is an iot lamp
-1. It will listen to request to set an led
-2. After 2 minutes it trys to update it's firmware to the next version
+1. It will listen for requests to set an led on or off
+2. On connection to the wifi, the device will check /version to see if it needs an update 
 */
 void connectToWS(){
   Serial.println("Connecting to websockets server...");
@@ -42,27 +40,41 @@ void connectToWS(){
     Serial.println("\nTimed out attempting to connect to websockets server...");
     digitalWrite(BLUE_LED, HIGH);
   }
-  // request update when server is down?
 }
 
-void connectToWifi(){
-  WiFi.begin(SSID,PASS);
-  Serial.println("Connecting");
-  while(WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+bool updateAvailable(){
+  HTTPClient client;
+  client.begin( (String("http://") + String(WSSERVER) + String(VERSION_URL)).c_str() );
+  int  httpResponseCode = client.GET();
+  bool isUpdateNeeded = false;
+  if (httpResponseCode>0 && httpResponseCode == HTTP_CODE_OK) {
+    String payload = client.getString();
+    if (payload){
+      if (payload.toInt() > VERSION){
+        isUpdateNeeded=true;
+      }
+    }
   }
-  Serial.println("");
-  Serial.print("Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
-  connectToWS();
+  client.end();
+  return isUpdateNeeded;
 }
 
-String checkForUpdate(){
-  return UPDATE_URL;
+String getUpdateURL(){
+  HTTPClient client;
+  client.begin( (String("http://") + String(WSSERVER) + String(FIRMWARE_URL)).c_str() );
+  int  httpResponseCode = client.GET();
+  String updateURL;
+  if (httpResponseCode>0 && httpResponseCode == HTTP_CODE_OK) {
+    String payload = client.getString();
+    if (payload){
+      updateURL = payload;
+    }
+  }
+  client.end();
+  return updateURL;
 }
 
-void installUpdate(){
+void installUpdate(void){
   File file = SPIFFS.open(FIRMWARE_PATH, FILE_READ);
   if(!file){
     Serial.println("Failed to open file for reading");
@@ -81,7 +93,7 @@ void installUpdate(){
   if(Update.end()){
     Serial.println("Successful update!");  
   }else {
-    Serial.println("Error Occurred: " + String(Update.getError()));
+    Serial.println("Error Occurred during update install from flash: " + String(Update.getError()));
     return;
   }
   file.close();
@@ -91,9 +103,6 @@ void installUpdate(){
 }
 
 bool getUpdate(String updateURL){
-  if(WiFi.status() != WL_CONNECTED){
-    connectToWifi();
-  }
   if(SPIFFS.exists(FIRMWARE_PATH)){
     SPIFFS.remove(FIRMWARE_PATH);
   }
@@ -144,6 +153,29 @@ bool getUpdate(String updateURL){
   return success;
 }
 
+void connectToWifi(){
+  WiFi.begin(SSID,PASS);
+  Serial.println("Connecting");
+  while(WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("Connected to WiFi network with IP Address: ");
+  Serial.println(WiFi.localIP());
+  connectToWS();
+  if (updateAvailable()){
+      Serial.println("Update Available!");
+      String updateURL      = getUpdateURL();
+      bool updateDownloaded = getUpdate(updateURL);
+      if (updateDownloaded){
+        installUpdate();
+      }
+  }else{
+    Serial.println("Firmware up to date...");
+  }
+}
+
 
 /*
 * MAIN PROGRAM
@@ -154,11 +186,10 @@ bool getUpdate(String updateURL){
 */
 void setup() {
   Serial.begin(115200); 
-  Serial.println("\n\n<--------Version 1----------->\n\n");
+  Serial.print("\n\n<--------Version ");Serial.print(VERSION);Serial.print("----------->\n\n");
   
   pinMode(BLUE_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
-  pinMode(GREEN_LED, OUTPUT);
 
   // Setup spiffs for updates
   if(!SPIFFS.begin(true)){
@@ -182,7 +213,7 @@ void setup() {
           ws.send(msg);
         }else if (strcmp(type,"change")==0){
           LIGHT_ON = doc["state"];
-          digitalWrite(GREEN_LED, LIGHT_ON);
+          digitalWrite(RED_LED, LIGHT_ON);
           String msg = String("{\"type\":\"status\", \"state\":" + String(LIGHT_ON)  + "}");
           ws.send(msg);
         }
@@ -193,18 +224,8 @@ void setup() {
 }
 void loop() {
   if(ws.available()){ws.poll();}else{connectToWS();}
-  delay(500);
-  wait_time+=.5;
-  // if (wait_time>120){
-  //   Serial.print("It's been two minutes, preparing for update...");
-  //   String updateURL = checkForUpdate();
-  //   if (updateURL){
-  //     bool updateDownloaded = getUpdate(updateURL);
-  //     if (updateDownloaded){
-  //       installUpdate();
-  //     }
-  //   }
-  // }
+  delay(BLINK_RATE * 500);
+  digitalWrite(BLUE_LED, !digitalRead(BLUE_LED));
 }
 
 

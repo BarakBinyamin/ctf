@@ -49,13 +49,13 @@ git clone https://github.com/BarakBinyamin/ctf.git && cd ctf
 ```
 
 ### Setup - Create an IOT Light
-Use [this diagram]() as a reference to wire up your IOT-Light
+First wire up an LED to GPIO32(D32) and a ground pin
 1. Open [iot-light/app](iot-light/app) a terminal 
 2. From the cmd line run `node index.js` to launch the app server, the app should be available at [http://localhost](http://localhost), `http://<your ip address>`, and `http://<your hostname>`, scan the QR code to jump to the app on your phone if your on the same wifi as your laptop
 3. Run the `hostname` command in a bash terminal to find the hostname of your computer
 4. Open [iot-light/light](iot-light/light) in its own vscode window
 5. Plug in an esp32 dev board
-6. Add your wifi credentials and hostname to [iot-light/light/include/config.h](iot-light/light/include/config.h) 
+6. Create a config.h file with your wifi credentials and ip address, and add it to [iot-light/light/include/](iot-light/light/include/) 
 ```
 #define SSID     "SSID"                           
 #define PASS     "PASS"                        
@@ -155,15 +155,29 @@ Options
 11. In the other run `node attack/index.js`
 12. In the screeen terminal `attack -t deauth`, but `attack -t probe` may also work, now hopefully the iot-light will connect to the bad router, all dns & http requests will be redirected to your machine, and you'll be able to replace the firmware when a request is made on the iot-ligh (when it starts flashing), watch the other two terminals for requests
 
-#### Patch for the attack
-Have the iot device check the authorship of the tls certificate
+##### Spoofing the **IOT-Light** 
+1. Open 3 terminals in the main project directory
+2. Download the malicicous servers local dependencies ``cd attack/servers && npm install``
+3. Connect to the mauraduer with screen, `ls /dev/tty*` to find your usb connection to your mauraduer, then `screen /dev/tty<USB1orSomething> 115200`, type `help` for a help menu to pop up
+4. `scanap` with the marauder to scan for access points, `stopscan` after you've seen the ssid the **IOT-light** is connected to
+5. `list -a` to list the wifi ap's
+6. `select -a <n,n,n>"` OR `select -a -f "contains <unique substring of the ap to attack>"`  to select the device(s) to fake death packets from so connected devices will switch to the fake access point (if its in range)
+7. Power up the bad router with the wifi credentials of the ap to attack
+8. Connect to it, the blue light will start blinking
+9. Keep the screen terminal open, open two terminals in the main ctf directory
+10. In another terminal run `node attack/servers/dns-server.js`
+11. In the last terminal run `node attack/index.js`
+12. In the screen terminal `attack -t deauth`, but `attack -t probe` may also work, now hopefully the iot-light will connect to the bad router, all dns & http requests will be redirected to your machine, and you'll be able to replace the firmware when a request is made on the iot-ligh (when it starts flashing), watch the other two terminals for requests
 
-#TODO what is tls and how is authorship confirmed
+#### Patch for the attack
+Updated browsers including Chrome and Safari, verify the authorship of a website’s certificate through the verification of its digital signature. An https website can either have a self signed certificate or a certificate signed by a certificate authority. Common browsers and advanced IOT devices have a list of various certificate authorities and their public keys, which can be used to decrypt a portion of a certificate with their signature. Only a certificate organization's private key can produce a signature that will be successfully unencrypted by a public key. In this way, the signature is verified, and the connections can be evaluated as secure or insecure.	
+
 <p align="center">
 <img width="50%" src="img/Cert_signature.png"/>
 <p align="center">Image Taken From <a src="https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions">Thesslstore</a></p>
 </p>
 
+The patched firmware that verifies authorship before pulling a new firmware image, is listed in [iot-light/light/src/main-patch.cpp](iot-light/light/src/main-patch.cpp), and can be built and uploaded with the options for the target labeled "patch". To do this open a vscode window in the [iot-light/light](iot-light/light) directory, platformio should automatically detect the platformio.ini file that is now at the top level of the file system in the window, after a few seconds, pressing the bug icon in the extension tabs should show the targets available. 
 
 ## Motivation
 IOT devices are commonly built with certain hardware constraints, limiting them to use IP over wifi or some subset of wireless communication protocol like Zigbee or espnow to interact with each other
