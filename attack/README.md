@@ -22,8 +22,11 @@ eapol
 wlan.sa==12:48:11:31:42:33
 ```
 
-# TCP dump
+# TCP dump stuff
 sudo tcpdump src 192.168.1.130
+- `sudo tcpdump -tvvvnA "tcp port http"` shows raw text http requests made (only the unencrypted ones)
+    - `-t` for no timestamps, `-A` for ascii, `-vvv` for really really verbose, `"tcp port http"`
+- `sudo tcpdump port 53 -l --immediate-mode | grep -o "[^ ]*[.]com"` shows domain names requested (always unencrypted)
 
 
 
