@@ -182,7 +182,7 @@ Wireless communication represents a greater hardware security risk than a wired 
 - **Denial of Service** ex. Deauth with udp packets or flooding wifi channel with noise
 - **Elevation of Privilege** ex. Can’t think of one at the moment but there is probably one out there
 
-[Here is a paper about this project](), [Here are some slides too]()
+[Here is a paper about this project](img/Report.pdf), [Here are some slides too](img/Slides.pdf)
 
 # Resources
 - [Rui & Sarah Santos: ESP32 https requests](https://randomnerdtutorials.com/esp32-https-requests/)
