@@ -157,7 +157,7 @@ Options
 9. Keep the screen terminal open, open two terminals in the main ctf directory
 10. In another terminal run `node attack/servers/dns-server.js`
 11. In the last terminal run `node attack/index.js`
-12. In the screen terminal `attack -t deauth`, but `attack -t probe` may also work, now hopefully the iot-light will connect to the bad router, all dns & http requests will be redirected to your machine, and you'll be able to replace the firmware when a request is made on the iot-ligh (when it starts flashing), watch the other two terminals for requests
+12. In the screen terminal `attack -t deauth`, but `attack -t probe` may also work, now hopefully the iot-light will connect to the bad router, all dns & http requests will be redirected to your machine, and you'll be able to replace the firmware when a request is made on the iot-light (when it starts flashing), watch the other two terminals for requests
 
 #### Patch for the attack
 Updated browsers including Chrome and Safari, verify the authorship of a website’s certificate through the verification of its digital signature. An https website can either have a self signed certificate or a certificate signed by a certificate authority. Common browsers and advanced IOT devices have a list of various certificate authorities and their public keys, which can be used to decrypt a portion of a certificate with their signature. Only a certificate organization's private key can produce a signature that will be successfully unencrypted by a public key. In this way, the signature is verified, and the connections can be evaluated as secure or insecure.	
@@ -167,7 +167,7 @@ Updated browsers including Chrome and Safari, verify the authorship of a website
 <p align="center">Image Taken From <a src="https://www.thesslstore.com/blog/ssltls-certificate-its-architecture-process-interactions">Thesslstore</a></p>
 </p>
 
-The patched firmware that verifies authorship before pulling a new firmware image, is listed in [iot-light/light/src/main-patch.cpp](iot-light/light/src/main-patch.cpp), and can be built and uploaded with the options for the target labeled "patch". To do this open a vscode window in the [iot-light/light](iot-light/light) directory, platformio should automatically detect the platformio.ini file that is now at the top level of the file system in the window, after a few seconds, pressing the bug icon in the extension tabs should show the targets available. 
+The patched firmware that verifies authorship before pulling a new image is listed in [iot-light/light/src/main-patch.cpp](iot-light/light/src/main-patch.cpp). It can be built and uploaded with the options for the target labeled "patch". To do this open a vscode window in the [iot-light/light](iot-light/light) directory, platformio should automatically detect the platformio.ini file that is at the top level of the file system in the window, after a few seconds, pressing the bug icon in the extension tabs should show the targets available. 
 
 ## Motivation
 IOT devices are commonly built with certain hardware constraints, limiting them to use IP over wifi or some subset of wireless communication protocol like Zigbee or espnow to interact with each other
