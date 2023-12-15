@@ -18,6 +18,8 @@
 using namespace websockets;
 WebsocketsClient ws;
 bool             LIGHT_ON  = false;
+bool             connected = false;
+bool             justconnected = false;
 
 /*
 This is an iot lamp
@@ -28,7 +30,7 @@ void connectToWS(){
   Serial.println("Connecting to websockets server...");
   int attempts = 0;
   bool connected = ws.connect(WSSERVER, WSPORT, "/?id=device");
-  while(!connected && attempts<15){
+  while(!connected && attempts<5){
     attempts++;
     Serial.print('.');
     delay(1000);
@@ -42,6 +44,8 @@ void connectToWS(){
   }
 }
 
+
+// Update Stuff
 bool updateAvailable(){
   HTTPClient client;
   client.begin( (String("http://") + String(WSSERVER) + String(VERSION_URL)).c_str() );
@@ -58,7 +62,6 @@ bool updateAvailable(){
   client.end();
   return isUpdateNeeded;
 }
-
 String getUpdateURL(){
   HTTPClient client;
   client.begin( (String("http://") + String(WSSERVER) + String(FIRMWARE_URL)).c_str() );
@@ -73,7 +76,6 @@ String getUpdateURL(){
   client.end();
   return updateURL;
 }
-
 void installUpdate(void){
   File file = SPIFFS.open(FIRMWARE_PATH, FILE_READ);
   if(!file){
@@ -101,7 +103,6 @@ void installUpdate(void){
   delay(4000);
   ESP.restart();
 }
-
 bool getUpdate(String updateURL){
   if(SPIFFS.exists(FIRMWARE_PATH)){
     SPIFFS.remove(FIRMWARE_PATH);
@@ -152,18 +153,7 @@ bool getUpdate(String updateURL){
   client.end();
   return success;
 }
-
-void connectToWifi(){
-  WiFi.begin(SSID,PASS);
-  Serial.println("Connecting");
-  while(WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.print("Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
-  connectToWS();
+void getUpdateIfAvailable(){
   if (updateAvailable()){
       Serial.println("Update Available!");
       String updateURL      = getUpdateURL();
@@ -174,6 +164,34 @@ void connectToWifi(){
   }else{
     Serial.println("Firmware up to date...");
   }
+}
+
+// Wifi stuff
+void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("Successfully connected to Access Point");
+}
+void Get_IPAddress(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("WIFI is connected!");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  connected=true;
+  justconnected=true;
+}
+void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  connected=false;
+  Serial.println("Disconnected from WIFI access point");
+  Serial.print("WiFi lost connection. Reason: ");
+  Serial.println(info.wifi_sta_disconnected.reason);
+  Serial.println("Reconnecting...");
+  WiFi.begin(SSID, PASS);
+}
+void setupWiFi(){
+  WiFi.disconnect(true);
+  delay(1000);
+  WiFi.onEvent(Wifi_connected,    WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+  WiFi.onEvent(Get_IPAddress,     WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+  WiFi.onEvent(Wifi_disconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+  WiFi.begin(SSID,PASS);
 }
 
 
@@ -198,7 +216,7 @@ void setup() {
   }
 
   // Setup wifi and websockets
-  connectToWifi();
+  setupWiFi();
   ws.onMessage([&](WebsocketsMessage message){
       StaticJsonDocument<200> doc;
       DeserializationError error = deserializeJson(doc, message.data());
@@ -223,7 +241,13 @@ void setup() {
   });
 }
 void loop() {
-  if(ws.available()){ws.poll();}else{connectToWS();}
-  delay(BLINK_RATE * 500);
-  digitalWrite(BLUE_LED, !digitalRead(BLUE_LED));
+  if (connected){
+    if (justconnected){justconnected=false;getUpdateIfAvailable();}
+    if(ws.available()){ws.poll();}else{connectToWS();}
+    delay(BLINK_RATE * 500);
+    digitalWrite(BLUE_LED, !digitalRead(BLUE_LED));
+  }  
 }
+
+
+

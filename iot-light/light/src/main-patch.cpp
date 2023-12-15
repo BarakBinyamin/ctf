@@ -18,6 +18,8 @@
 using namespace websockets;
 WebsocketsClient ws;
 bool             LIGHT_ON  = false;
+bool             connected = false;
+bool             justconnected = false;
 const char*      root_certificate = "-----BEGIN CERTIFICATE-----\n"        \
 "MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\n"  \  
 "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n"  \
@@ -42,7 +44,7 @@ const char*      root_certificate = "-----BEGIN CERTIFICATE-----\n"        \
 "-----END CERTIFICATE-----\n";
 
 /*
-This is a more secure iot lamp
+This is an iot lamp
 1. It will listen for requests to set an led on or off
 2. On connection to the wifi, the device will check /version to see if it needs an update 
 */
@@ -50,7 +52,7 @@ void connectToWS(){
   Serial.println("Connecting to websockets server...");
   int attempts = 0;
   bool connected = ws.connect(WSSERVER, WSPORT, "/?id=device");
-  while(!connected && attempts<15){
+  while(!connected && attempts<5){
     attempts++;
     Serial.print('.');
     delay(1000);
@@ -64,9 +66,11 @@ void connectToWS(){
   }
 }
 
+
+// Update Stuff
 bool updateAvailable(){
   HTTPClient client;
-  client.begin((String("http://") + String(WSSERVER) + String(VERSION_URL)).c_str());
+  client.begin( (String("http://") + String(WSSERVER) + String(VERSION_URL)).c_str() );
   int  httpResponseCode = client.GET();
   bool isUpdateNeeded = false;
   if (httpResponseCode>0 && httpResponseCode == HTTP_CODE_OK) {
@@ -80,7 +84,6 @@ bool updateAvailable(){
   client.end();
   return isUpdateNeeded;
 }
-
 String getUpdateURL(){
   HTTPClient client;
   client.begin( (String("http://") + String(WSSERVER) + String(FIRMWARE_URL)).c_str() );
@@ -95,7 +98,33 @@ String getUpdateURL(){
   client.end();
   return updateURL;
 }
-
+void installUpdate(void){
+  File file = SPIFFS.open(FIRMWARE_PATH, FILE_READ);
+  if(!file){
+    Serial.println("Failed to open file for reading");
+    return;
+  }
+  Serial.println("Starting update...");
+  size_t fileSize = file.size();
+  Serial.print("Firmware file size is ");Serial.print(fileSize);Serial.println("Bytes");
+  if(!Update.begin(fileSize)){
+      String error = Update.errorString();
+      Serial.println("Cannot do the update");
+      Serial.println(error);
+      return;
+  }
+  Update.writeStream(file);
+  if(Update.end()){
+    Serial.println("Successful update!");  
+  }else {
+    Serial.println("Error Occurred during update install from flash: " + String(Update.getError()));
+    return;
+  }
+  file.close();
+  Serial.println("Reset in 4 seconds...\n\n\n\n");
+  delay(4000);
+  ESP.restart();
+}
 bool getUpdate(String updateURL){
   if(SPIFFS.exists(FIRMWARE_PATH)){
     SPIFFS.remove(FIRMWARE_PATH);
@@ -139,53 +168,14 @@ bool getUpdate(String updateURL){
       success=false;
     }
   }else {
-    Serial.print("Error code from firmware URL: ");
+    Serial.print("Error code from firware URL: ");
     Serial.println(httpResponseCode);
   }
   file.close();
   client.end();
   return success;
 }
-
-void installUpdate(void){
-  File file = SPIFFS.open(FIRMWARE_PATH, FILE_READ);
-  if(!file){
-    Serial.println("Failed to open file for reading");
-    return;
-  }
-  Serial.println("Starting update...");
-  size_t fileSize = file.size();
-  Serial.print("Firmware file size is ");Serial.print(fileSize);Serial.println("Bytes");
-  if(!Update.begin(fileSize)){
-      String error = Update.errorString();
-      Serial.println("Cannot do the update");
-      Serial.println(error);
-      return;
-  }
-  Update.writeStream(file);
-  if(Update.end()){
-    Serial.println("Successful update!");  
-  }else {
-    Serial.println("Error Occurred during update install from flash: " + String(Update.getError()));
-    return;
-  }
-  file.close();
-  Serial.println("Reset in 4 seconds...\n\n\n\n");
-  delay(4000);
-  ESP.restart();
-}
-
-void connectToWifi(){
-  WiFi.begin(SSID,PASS);
-  Serial.println("Connecting");
-  while(WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.print("Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
-  connectToWS();
+void getUpdateIfAvailable(){
   if (updateAvailable()){
       Serial.println("Update Available!");
       String updateURL      = getUpdateURL();
@@ -196,6 +186,34 @@ void connectToWifi(){
   }else{
     Serial.println("Firmware up to date...");
   }
+}
+
+// Wifi stuff
+void Wifi_connected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("Successfully connected to Access Point");
+}
+void Get_IPAddress(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("WIFI is connected!");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  connected=true;
+  justconnected=true;
+}
+void Wifi_disconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  connected=false;
+  Serial.println("Disconnected from WIFI access point");
+  Serial.print("WiFi lost connection. Reason: ");
+  Serial.println(info.wifi_sta_disconnected.reason);
+  Serial.println("Reconnecting...");
+  WiFi.begin(SSID, PASS);
+}
+void setupWiFi(){
+  WiFi.disconnect(true);
+  delay(1000);
+  WiFi.onEvent(Wifi_connected,    WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+  WiFi.onEvent(Get_IPAddress,     WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+  WiFi.onEvent(Wifi_disconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+  WiFi.begin(SSID,PASS);
 }
 
 
@@ -220,7 +238,7 @@ void setup() {
   }
 
   // Setup wifi and websockets
-  connectToWifi();
+  setupWiFi();
   ws.onMessage([&](WebsocketsMessage message){
       StaticJsonDocument<200> doc;
       DeserializationError error = deserializeJson(doc, message.data());
@@ -245,7 +263,13 @@ void setup() {
   });
 }
 void loop() {
-  if(ws.available()){ws.poll();}else{connectToWS();}
-  delay(BLINK_RATE * 500);
-  digitalWrite(BLUE_LED, !digitalRead(BLUE_LED));
+  if (connected){
+    if (justconnected){justconnected=false;getUpdateIfAvailable();}
+    if(ws.available()){ws.poll();}else{connectToWS();}
+    delay(BLINK_RATE * 500);
+    digitalWrite(BLUE_LED, !digitalRead(BLUE_LED));
+  }  
 }
+
+
+

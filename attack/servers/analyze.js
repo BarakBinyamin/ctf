@@ -1,4 +1,5 @@
 const express = require(`express`)
+const path    = require(`path`)
 const https   = require(`https`)
 const http    = require(`http`)
 const fs      = require(`fs`)
@@ -13,15 +14,20 @@ const credentials = { key: fs.readFileSync(`${__dirname}/keys/key.pem`), cert: f
 const app = express()
 
 app.get('/version',(req,res)=>{
-  console.log('here')
-  res.send(`${1000}`);
+  console.log("Recieved new request:")
+  console.log(`\tOrigin: ${req.header('Origin')}`)
+  console.log(`\tHost: ${req.header('Host')}`)
+  console.log(`\tHostname: ${req.hostname}`)
+  console.log(`\tPATH: ${req.path}`)
+  res.send(`${22}`)
 })
-app.get('/whatisthefirmwareurl',(req,res)=>{
-  console.log('here')
-  res.send(`https://mbinyamtorsMBP2.rochester.rr.com/firmware`);
-})
-app.get('*',(req,res)=>{
-  res.sendFile('dist/red-firmware.bin', {root: `${__dirname}`})
+app.get('/*',(req,res)=>{
+  console.log("Recieved new request:")
+  console.log(`\tOrigin: ${req.header('Origin')}`)
+  console.log(`\tHost: ${req.header('Host')}`)
+  console.log(`\tHostname: ${req.hostname}`)
+  console.log(`\tPATH: ${req.path}`)
+  res.send("ok")
 })
 
 let normalServer = http.createServer(app)
@@ -29,7 +35,7 @@ let secureServer = https.createServer(credentials, app)
 
 normalServer.listen(80,()=>{
   const link1 = `http://${ADDRESS}:${PORT}` 
-  console.log(`\nStarted bad firmware server @${link1}\n`)
+  console.log(`\nStarted analysis server @${link1}, will log all traffic\n`)
   qrcode.generate(link1,{small:true}, function (qrcode) {
       console.log(qrcode);
   })

@@ -11,3 +11,7 @@ You could alternatively run this easter egg in a seperate terminal
 ```bash
 node bad-login.js
 ```
+Or analyze http and https requests with
+```bash
+node analyze.js
+```
