@@ -65,7 +65,7 @@ The IOT-light uses hardcoded credentials to connect to WiFi, check for updates a
 ```
 7. PlatformIO <img src="https://github.com/BarakBinyamin/RIT-CE-toolbox/assets/60147768/15385a35-3bf9-4561-a204-b651d776f4a1" width="15" height="15">->blue1->upload&monitor
 8. Build all the other targets too, copy the firmware over to the releases folder and rename them `v<1-3>.bin`, name the red target firmware `red-firmware.bin`, this will be refrenced in the malicous server
-9. If you're plaaning on using github to store firmware to pull, change the base address to your github fork url in [iot-light/app/index.js](iot-light/app/index.js), if not you will need to use a [different root certificate in the patch](https://randomnerdtutorials.com/esp32-https-requests/)
+9. If you're planning on using github to store firmware to pull, change the base address to your github fork url in [iot-light/app/index.js](iot-light/app/index.js), if not you will need to use a [different root certificate in the patch](https://randomnerdtutorials.com/esp32-https-requests/)
 10. To get the IOT-light to update change the version number (to 2 for the first update) in the IOT-light server (and resart it) [iot-light/app/index.js](iot-light/app/index.js)
 
 ### Attack
