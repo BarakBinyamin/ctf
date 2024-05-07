@@ -52,7 +52,7 @@ git clone <your fork URL> && cd ctf
 The IOT-light uses hardcoded credentials to connect to WiFi, check for updates and communications by connecting to a custom server, and if an update was available, will pull a new firmware from github.com or wherever the server tells it to
 1. Wire up an LED to GPIO32(D32) and a ground pin
 1. Open [iot-light/app](iot-light/app) a terminal 
-2. From the cmd line run `node index.js` to launch the app server, the app should be available at [http://localhost](http://localhost), `http://<your ip address>`, and `http://<your hostname>`, scan the QR code to jump to the app on your phone if your on the same wifi as your laptop
+2. From the cmd line run `node index.js` to launch the app server, the app should be available at [http://localhost](http://localhost), `http://<your ip address>`, and `http://<your hostname>`, scan the QR code to jump to the app on your phone if you're on the same wifi as your laptop
 3. Run the `hostname` command in a bash terminal to find the hostname of your computer
 4. Open [iot-light/light](iot-light/light) in its own vscode window
 5. Plug in an esp32 dev board
